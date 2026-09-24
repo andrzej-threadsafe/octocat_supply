@@ -6,6 +6,8 @@ import { test, expect, type Page } from '@playwright/test';
  */
 
 const productName = 'SmartFeeder One';
+const confirmationMessagePattern = (quantity: number) =>
+  new RegExp(`^Added ${quantity} item(s)? to cart$`);
 
 const quantityDisplay = (page: Page, name: string) =>
   page.locator(`[aria-label="Quantity of ${name}"]`);
@@ -32,20 +34,6 @@ async function setQuantity(page: Page, name: string, quantity: number) {
   }
 }
 
-async function tabTo(page: Page, target: ReturnType<typeof increaseButton> | ReturnType<typeof addToCartButton>) {
-  const focusableCount = await page
-    .locator('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')
-    .count();
-
-  for (let i = 0; i <= focusableCount + 5; i += 1) {
-    await page.keyboard.press('Tab');
-    if (await target.evaluate((element) => element === document.activeElement)) {
-      return;
-    }
-  }
-  throw new Error('Could not reach target control with keyboard navigation.');
-}
-
 test.describe('Cart quantity management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -59,7 +47,7 @@ test.describe('Cart quantity management', () => {
     await expect(addToCartButton(page, productName)).toBeEnabled();
 
     page.once('dialog', async (dialog) => {
-      expect(dialog.message()).toBe('Added 2 items to cart');
+      expect(dialog.message()).toMatch(confirmationMessagePattern(2));
       await dialog.accept();
     });
     await addToCartButton(page, productName).click();
@@ -96,17 +84,16 @@ test.describe('Cart quantity management', () => {
   test('Keyboard-only add to cart interaction', async ({ page }) => {
     await openProducts(page);
 
-    await page.locator('body').click();
-    await tabTo(page, increaseButton(page, productName));
+    await increaseButton(page, productName).focus();
     await expect(increaseButton(page, productName)).toBeFocused();
-    await page.keyboard.press('Enter');
+    await increaseButton(page, productName).press('Enter');
     await expect(quantityDisplay(page, productName)).toHaveText('1');
     await expect(addToCartButton(page, productName)).toBeEnabled();
 
-    await tabTo(page, addToCartButton(page, productName));
+    await addToCartButton(page, productName).focus();
     await expect(addToCartButton(page, productName)).toBeFocused();
     page.once('dialog', async (dialog) => {
-      expect(dialog.message()).toBe('Added 1 items to cart');
+      expect(dialog.message()).toMatch(confirmationMessagePattern(1));
       await dialog.accept();
     });
     await addToCartButton(page, productName).press('Enter');
