@@ -7,27 +7,22 @@ import { test, expect, type Page } from '@playwright/test';
 
 const productName = 'SmartFeeder One';
 
-const productCard = (page: Page, name: string) =>
-  page
-    .getByRole('heading', { name, exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][1]');
-
 const quantityDisplay = (page: Page, name: string) =>
-  productCard(page, name).locator(`[aria-label="Quantity of ${name}"]`);
+  page.locator(`[aria-label="Quantity of ${name}"]`);
 
 const increaseButton = (page: Page, name: string) =>
-  productCard(page, name).getByRole('button', { name: `Increase quantity of ${name}` });
+  page.getByRole('button', { name: `Increase quantity of ${name}` });
 
 const decreaseButton = (page: Page, name: string) =>
-  productCard(page, name).getByRole('button', { name: `Decrease quantity of ${name}` });
+  page.getByRole('button', { name: `Decrease quantity of ${name}` });
 
 const addToCartButton = (page: Page, name: string) =>
-  productCard(page, name).locator('[id^="add-to-cart-"]');
+  page.getByRole('button', { name: new RegExp(`^Add \\d+ ${name} to cart$`) });
 
 async function openProducts(page: Page) {
   await page.goto('/products');
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
-  await expect(productCard(page, productName)).toBeVisible();
+  await expect(page.getByRole('heading', { name: productName, exact: true })).toBeVisible();
 }
 
 async function setQuantity(page: Page, name: string, quantity: number) {
@@ -35,6 +30,16 @@ async function setQuantity(page: Page, name: string, quantity: number) {
   for (let i = 0; i < quantity; i += 1) {
     await increase.click();
   }
+}
+
+async function tabTo(page: Page, target: ReturnType<typeof increaseButton> | ReturnType<typeof addToCartButton>) {
+  for (let i = 0; i < 30; i += 1) {
+    await page.keyboard.press('Tab');
+    if (await target.evaluate((element) => element === document.activeElement)) {
+      return;
+    }
+  }
+  throw new Error('Could not reach target control with keyboard navigation.');
 }
 
 test.describe('Cart quantity management', () => {
@@ -78,18 +83,23 @@ test.describe('Cart quantity management', () => {
     await increaseButton(page, productName).click();
     await expect(quantityDisplay(page, productName)).toHaveText('1');
     await expect(addToCartButton(page, productName)).toBeEnabled();
+
+    await decreaseButton(page, productName).click();
+    await expect(quantityDisplay(page, productName)).toHaveText('0');
+    await expect(addToCartButton(page, productName)).toBeDisabled();
   });
 
   test('Keyboard-only add to cart interaction', async ({ page }) => {
     await openProducts(page);
 
-    await increaseButton(page, productName).focus();
+    await page.locator('body').click();
+    await tabTo(page, increaseButton(page, productName));
     await expect(increaseButton(page, productName)).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(quantityDisplay(page, productName)).toHaveText('1');
     await expect(addToCartButton(page, productName)).toBeEnabled();
 
-    await addToCartButton(page, productName).focus();
+    await tabTo(page, addToCartButton(page, productName));
     await expect(addToCartButton(page, productName)).toBeFocused();
     page.once('dialog', async (dialog) => {
       expect(dialog.message()).toBe('Added 1 items to cart');
