@@ -33,7 +33,11 @@ async function setQuantity(page: Page, name: string, quantity: number) {
 }
 
 async function tabTo(page: Page, target: ReturnType<typeof increaseButton> | ReturnType<typeof addToCartButton>) {
-  for (let i = 0; i < 30; i += 1) {
+  const focusableCount = await page
+    .locator('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')
+    .count();
+
+  for (let i = 0; i <= focusableCount + 5; i += 1) {
     await page.keyboard.press('Tab');
     if (await target.evaluate((element) => element === document.activeElement)) {
       return;
@@ -105,7 +109,7 @@ test.describe('Cart quantity management', () => {
       expect(dialog.message()).toBe('Added 1 items to cart');
       await dialog.accept();
     });
-    await page.keyboard.press('Enter');
+    await addToCartButton(page, productName).press('Enter');
 
     await expect(quantityDisplay(page, productName)).toHaveText('0');
     await expect(addToCartButton(page, productName)).toBeDisabled();
