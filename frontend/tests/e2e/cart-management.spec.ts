@@ -20,7 +20,7 @@ const decreaseButton = (page: Page, name: string) =>
   page.getByRole('button', { name: `Decrease quantity of ${name}` });
 
 const addToCartButton = (page: Page, name: string) =>
-  page.getByRole('button', { name: new RegExp(`^Add \\d+ ${escapeRegExp(name)} to cart$`) });
+  page.getByRole('button', { name: new RegExp(`^Add .* ${escapeRegExp(name)} to cart$`) });
 
 async function openProducts(page: Page) {
   await page.goto('/products');
