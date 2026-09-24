@@ -9,10 +9,8 @@ const productName = 'SmartFeeder One';
 
 const productCard = (page: Page, name: string) =>
   page
-    .locator('article, div')
-    .filter({ has: page.getByRole('heading', { name, exact: true }) })
-    .filter({ has: page.getByRole('button', { name: 'Add to Cart' }) })
-    .first();
+    .getByRole('heading', { name, exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][1]');
 
 const quantityDisplay = (page: Page, name: string) =>
   productCard(page, name).locator(`[aria-label="Quantity of ${name}"]`);
@@ -24,7 +22,7 @@ const decreaseButton = (page: Page, name: string) =>
   productCard(page, name).getByRole('button', { name: `Decrease quantity of ${name}` });
 
 const addToCartButton = (page: Page, name: string) =>
-  productCard(page, name).getByRole('button', { name: 'Add to Cart' });
+  productCard(page, name).locator('[id^="add-to-cart-"]');
 
 async function openProducts(page: Page) {
   await page.goto('/products');
