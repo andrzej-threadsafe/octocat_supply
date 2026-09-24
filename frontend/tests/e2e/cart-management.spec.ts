@@ -87,7 +87,7 @@ test.describe('Cart quantity management', () => {
     await expect(quantityDisplay(page, productName)).toHaveText('1');
     await expect(addToCartButton(page, productName)).toBeEnabled();
 
-    await addToCartButton(page, productName).focus();
+    await page.keyboard.press('Tab');
     await expect(addToCartButton(page, productName)).toBeFocused();
     page.once('dialog', async (dialog) => {
       expect(dialog.message()).toMatch(confirmationMessagePattern(1));
