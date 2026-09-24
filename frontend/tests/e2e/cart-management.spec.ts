@@ -81,7 +81,10 @@ test.describe('Cart quantity management', () => {
   test('Keyboard-only add to cart interaction', async ({ page }) => {
     await openProducts(page);
 
-    await increaseButton(page, productName).focus();
+    await decreaseButton(page, productName).focus();
+    await expect(decreaseButton(page, productName)).toBeFocused();
+
+    await page.keyboard.press('Tab');
     await expect(increaseButton(page, productName)).toBeFocused();
     await increaseButton(page, productName).press('Enter');
     await expect(quantityDisplay(page, productName)).toHaveText('1');
