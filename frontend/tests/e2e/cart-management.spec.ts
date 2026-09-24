@@ -35,10 +35,6 @@ async function setQuantity(page: Page, name: string, quantity: number) {
 }
 
 test.describe('Cart quantity management', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
   test('Increase quantity and add product to cart', async ({ page }) => {
     await openProducts(page);
 
