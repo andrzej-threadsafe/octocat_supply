@@ -53,7 +53,7 @@ export default function Products() {
     const quantity = quantities[productId] || 0;
     if (quantity > 0) {
       // TODO: Implement cart functionality
-      alert(`Added ${quantity} items to cart`);
+      alert(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`);
       setQuantities((prev) => ({
         ...prev,
         [productId]: 0,

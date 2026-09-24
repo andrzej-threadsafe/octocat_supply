@@ -6,8 +6,9 @@ import { test, expect, type Page } from '@playwright/test';
  */
 
 const productName = 'SmartFeeder One';
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const confirmationMessagePattern = (quantity: number) =>
-  new RegExp(`^Added ${quantity} item(s)? to cart$`);
+  new RegExp(`^Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart$`);
 
 const quantityDisplay = (page: Page, name: string) =>
   page.locator(`[aria-label="Quantity of ${name}"]`);
@@ -19,7 +20,7 @@ const decreaseButton = (page: Page, name: string) =>
   page.getByRole('button', { name: `Decrease quantity of ${name}` });
 
 const addToCartButton = (page: Page, name: string) =>
-  page.getByRole('button', { name: new RegExp(`^Add \\d+ ${name} to cart$`) });
+  page.getByRole('button', { name: new RegExp(`^Add \\d+ ${escapeRegExp(name)} to cart$`) });
 
 async function openProducts(page: Page) {
   await page.goto('/products');
