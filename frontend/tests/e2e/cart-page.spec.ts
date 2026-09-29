@@ -40,14 +40,14 @@ async function addProduct(page: Page, productName: string, quantity: number) {
   }
 
   const increaseButton = page.getByRole('button', {
-    name: `Increase quantity of ${productName}`,
+    name: `Increase quantity of ${product.name}`,
   });
   for (let item = 0; item < quantity; item += 1) {
     await increaseButton.click();
   }
 
   const addButton = page.getByRole('button', {
-    name: `Add ${quantity} ${productName} to cart`,
+    name: `Add ${quantity} ${product.name} to cart`,
   });
   await expect(addButton).toBeEnabled();
   await addButton.click();
@@ -146,6 +146,15 @@ test.describe('Shopping cart page', () => {
     await expectSummaryAmount(page, 'Subtotal', '$150.01');
     await expectSummaryAmount(page, 'Shipping', '$0.00');
     await expectSummaryAmount(page, 'Total', '$150.01');
+  });
+
+  test('waives shipping when the subtotal is one cent above $100', async ({ page }) => {
+    await addProduct(page, 'Purrfect Fountain', 1);
+    await openCart(page);
+
+    await expectSummaryAmount(page, 'Subtotal', '$100.01');
+    await expectSummaryAmount(page, 'Shipping', '$0.00');
+    await expectSummaryAmount(page, 'Total', '$100.01');
   });
 
   test('removes individual items and returns to the empty state after removing the last item', async ({
